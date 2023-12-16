@@ -58,7 +58,7 @@ function animate() {
 		c.fillRect(position.x, position.y, width, height);
 		c.closePath();
 	}
-	*/
+	
 
 	// Animate Mouse Tracker Circle
 	c.beginPath();
@@ -66,7 +66,7 @@ function animate() {
 	c.arc(mousePosition.x, mousePosition.y, MOUSE_RANGE, 0, Math.PI*2);
 	c.stroke();
 	c.closePath();
-	
+	*/
 
 
 

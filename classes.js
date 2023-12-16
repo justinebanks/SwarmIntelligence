@@ -1,7 +1,7 @@
 // General Constants
 const WIDTH = window.screen.availWidth - 10;
 const HEIGHT = window.screen.availHeight - 150;
-const CELL_COUNT = 1000;
+const CELL_COUNT = 600;
 const CELL_SIZE = 1;
 const DEFAULT_CELL_SPEED = 5;
 const MOUSE_RANGE = 50;
