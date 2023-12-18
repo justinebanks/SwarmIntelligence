@@ -69,6 +69,7 @@ class Being {
 		this.velocity = randRange(MIN_CELL_SPEED, MAX_CELL_SPEED);
 		this.direction = new Vector(randRange(-1, 1), randRange(-1, 1)).getNormalized();
 		this.id = Math.random()
+		this.broadcastHighlight = false;
 
 
 		// For Swarm Intelligence
@@ -175,8 +176,11 @@ class Being {
 					if (being.broadcast[i] < this.distanceFromDest[i]) {
 						// 6.1 Update your respective counter
 						this.distanceFromDest[i] = being.broadcast[i];
-						//this.drawConnection(being, i);
-
+						
+						if (this.broadcastHighlight == true) {
+							this.drawConnection(being, i);
+						}
+						
 						// 6.2 If you need to reach this place
 						if (this.objectiveDest == i) {
 							// 6.2.1 Turn in the direction of the shouting

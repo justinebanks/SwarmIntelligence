@@ -10,6 +10,7 @@ is at the timestamp 5:13 in the video
 */
 
 
+
 // Set Up Canvas
 const canvas = document.querySelector("canvas")
 canvas.width = WIDTH;
@@ -31,6 +32,18 @@ for (i in range(CELL_COUNT)) {
 	let being = new Being(Math.random() * canvas.width, Math.random() * canvas.height, CELL_SIZE)
 	beings.push(being)
 }
+
+
+
+function enableBroadcastHighlight() {
+	beings.forEach((being) => being.broadcastHighlight = true);
+}
+
+
+function disableBroadcastHighlight() {
+	beings.forEach((being) => being.broadcastHighlight = false);
+}
+
 
 
 function animate() {
