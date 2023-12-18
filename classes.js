@@ -1,56 +1,35 @@
 // General Constants
 const WIDTH = window.screen.availWidth - 10;
 const HEIGHT = window.screen.availHeight - 150;
-const CELL_COUNT = 600;
+
+
+// Being Constants
+const CELL_COUNT = 1000;
 const CELL_SIZE = 1;
-const DEFAULT_CELL_SPEED = 5;
-const MOUSE_RANGE = 50;
 
-// Being Joining Constants
-const CELL_BOND_FREQUENCY = 3; // Cells can bond with other cells who's age is within this number distance from the cell's age
+const MIN_CELL_SPEED = 1;
+const MAX_CELL_SPEED = 2;
 
-
-// Swarm Intelligence Constants
-const BROADCAST_DISTANCE = 50;
+const BROADCAST_DISTANCE = 100;
 
 
-// Defines Important Program Variables
-let mouseClicked = false
-let mousePosition = new Vector(0, 0);
+// Target Constants
+const TARGET_SIZE = 20;
+const TARGET_SPEED = 0.5;
 
-let pinPoints = [new Vector(0,0)]
-let frame = 0;
 
+// Defines Array of all Beings (Cells) and all Targets
 let beings = [];
 let targets = [];
-let queens = []
-
-
-// Mouse Event Listeners
-document.addEventListener("mousemove", (event) => {
-	mousePosition = new Vector(event.clientX, event.clientY);
-})
-
-document.addEventListener("mousedown", (event) => {
-	selectedBeings = [];
-	mouseClicked = true;
-})
-
-document.addEventListener("mouseup", (event) => {
-	mouseClicked = false;
-})
-
 
 
 class Target {
 	constructor(color) {
 		this.position = new Vector(Math.random()*WIDTH, Math.random()*HEIGHT);
 		this.direction = Vector.fromRandom();
-		this.velocity = 1;
-		this.size = 20;
+		this.velocity = TARGET_SPEED;
+		this.size = TARGET_SIZE;
 		this.color = color;
-
-		//targets.push(this);
 	}
 
 	draw() {
@@ -81,36 +60,25 @@ class Target {
 }
 
 
-class Queen {
-	constructor(color) {
-		this.position = new Vector(Math.random()*WIDTH, Math.random()*HEIGHT);
-		this.direction = Vector.fromRandom();
-		this.size = 10;
-		this.color = 60;
-	}	
-}
-
-
 class Being {
 	constructor(x, y, size) {
+
+		// Default Object Properies
 		this.position = new Vector(x, y)
-		this.color = 240;
 		this.size = size;
-		this.velocity = randRange(2, 4);
+		this.velocity = randRange(MIN_CELL_SPEED, MAX_CELL_SPEED);
 		this.direction = new Vector(randRange(-1, 1), randRange(-1, 1)).getNormalized();
 		this.id = Math.random()
 
-		// For Being Joining
-		this.joinedWith = null;
-		this.age = Math.floor(Math.random()*50) + 1;
 
 		// For Swarm Intelligence
-		this.objectiveDest = Math.floor(randRange(0, targets.length));
-		this.distanceFromDest = [];
-		this.broadcast = []
-		targets.forEach((_, index) => { this.distanceFromDest[index] = 1_000; this.broadcast[index] = 1_000 })
+		this.objectiveDest = Math.floor(randRange(0, targets.length)); // The cell's desired target
+		this.color = targets[this.objectiveDest].color; // cell is the same color as its desired target
 
-		this.color = targets[this.objectiveDest].color;
+		this.distanceFromDest = []; // Cell's approximated distance from its target
+		this.broadcast = [] // The broadcast signal that the cell sends to other cells
+		targets.forEach((_, index) => { this.distanceFromDest[index] = 1_000; this.broadcast[index] = 1_000 }) // Dummy values for last 2 properties
+
 	}
 
 
@@ -121,14 +89,6 @@ class Being {
 		c.fill();
 		c.closePath();
 	}
-
-	onEnterMouseRange() {
-		if (mouseClicked) {
-			selectedBeings.push(this.id);
-		}
-	}
-
-	onLeaveMouseRange() {}
 
 
 	isCollidingWith(being) {
@@ -141,6 +101,7 @@ class Being {
 	}
 
 
+	// Draws the successful signals between beings in order to produce a lightning-like effect
 	drawConnection(being, targetIndex) {
 		c.beginPath();
 		c.strokeStyle = `hsl(${targets[targetIndex].color}, 100%, 50%)`;
@@ -155,84 +116,70 @@ class Being {
 	animate() {
 		this.draw();
 
-		if (this.position.distanceTo(mousePosition) <= MOUSE_RANGE) {
-			this.onEnterMouseRange();
-		}
-		else {
-			this.onLeaveMouseRange();
-		}
 
-
-		/*
-		// Being Joining Functionality
-		if (this.joinedWith != null) {
-			this.direction = this.joinedWith.direction;
-			this.speed = this.joinedWith.speed;
-
-			while (this.isCollidingWith(this.joinedWith) && this.joinedWith == null && this.position.distanceTo(this.joinedWith.position) >= this.size+this.joinedWith.size+10) {
-				let randDirection = new Vector(Math.random()-0.5, Math.random()-0.5).getNormalized();
-				this.position = this.joinedWith.position.add(Vector.fromMagnitude(this.size+this.joinedWith.size, randDirection));	
-			}
-		}
-
-		// The Actual Joining of Beings
-		let diff = CELL_BOND_FREQUENCY;
-
-		for (let being of beings) {
-			if (this.isCollidingWith(being) && being.id != this.id && being.age <= this.age+diff && being.age >= this.age-diff) {
-				this.joinedWith = being;
-			}
-		}*/
-
-
-
-		// Swarm Intelligence
-		const broadcastDist = BROADCAST_DISTANCE;
+		// Swarm Intelligence Code (Follows all directions laid out at timestamp 5:13)
+		let broadcastDist = BROADCAST_DISTANCE;
 		this.direction.x += randRange(-0.05, 0.05);
 		this.direction.y += randRange(-0.05, 0.05);
 
-		this.distanceFromDest[0]++;
-		this.distanceFromDest[1]++;
 
-
+		// 1+2. Take a step & Increase all counters by one
 		for (let i = 0; i < targets.length; i++) {
-			if (this.isCollidingWith(targets[i])) {
-				this.distanceFromDest[i] = 0;
-
-				if (this.objectiveDest == i) {
-	
-					let possibleNewDests = [];
-
-					targets.forEach((target, index) => {
-						if (index != i) {
-							possibleNewDests.push(index);
-						}
-					})
-
-
-					this.objectiveDest = i == 0 ? randChoice(possibleNewDests)
-										: i == 1 ? randChoice(possibleNewDests)
-										//: i == 2 ? randChoice(possibleNewDests)
-										: 3;
-
-					this.direction = this.direction.mul(-1);
-					this.color = targets[this.objectiveDest].color;
-				}
-			}	
+			this.distanceFromDest[i]++;
 		}
 
 
+		// 3. If you bump into one of the items
+		for (let i = 0; i < targets.length; i++) {
+			if (this.isCollidingWith(targets[i])) {
+				// 3.1 reset all respective counters
+				this.distanceFromDest[i] = 0;
+
+
+				// 3.2 If this is the destination you were willing to reach
+				if (this.objectiveDest == i) {
+
+					// Code for the 2 queen targets sucking resources from the 2 resource targets
+					if (i == 0 || i == 1) {
+						targets[i].size += 0.01
+					}
+					else {
+						if (targets[i].size > 0.1) {
+							targets[i].size -= 0.05;
+						} else {
+							targets[i] = new Target(Math.floor(randRange(180, 360)));
+						}
+					}
+					
+					this.color = targets[this.objectiveDest].color;
+
+					// 3.2.1 Turn around 180 degrees
+					this.direction = this.direction.mul(-1);
+	
+					// 3.2.2 Change the destination objective
+					let closestQueen = this.position.distanceTo(targets[0].position) < this.position.distanceTo(targets[1].position) ? 0 : 1;
+					this.objectiveDest = i == 0 ? randChoice(_range(2, targets.length)) :  i == 1 ? randChoice(_range(2, targets.length)) : closestQueen;
+				}
+			}
+		}
+
+		// 4. Shout out the value of your counters plus the maximum distance you can be heard at
 		this.broadcast = []
 		targets.forEach((item, index) => this.broadcast.push(this.distanceFromDest[index]+broadcastDist))
 
+		// 5. Listen to what others are shouting
 		for (let being of beings) {
 			if (this.position.distanceTo(being.position) <= broadcastDist) {
 				for (let i = 0; i < targets.length; i++) {
+					// 6. If you have heard a value less than in your counter
 					if (being.broadcast[i] < this.distanceFromDest[i]) {
+						// 6.1 Update your respective counter
 						this.distanceFromDest[i] = being.broadcast[i];
-						this.drawConnection(being, i);
+						//this.drawConnection(being, i);
 
+						// 6.2 If you need to reach this place
 						if (this.objectiveDest == i) {
+							// 6.2.1 Turn in the direction of the shouting
 							let n = this.position.directionTo(being.position);
 							if (n.x) {
 								this.direction = this.position.directionTo(being.position);
@@ -257,93 +204,5 @@ class Being {
 		if (this.position.y <= 0 || this.position.y >= canvas.height) {
 			this.direction.y *= -1;
 		}
-	}
-}
-
-
-
-
-class BeingGroup {
-	constructor(beings=[]) {
-		this.beings = beings;
-		this.size = beings.length;
-		this.id = Math.random();
-	}
-
-	add(being) {
-		this.beings.push(being);
-		this.size = this.beings.length;
-	}
-
-
-	validateBeings(validation_func) {
-		for (let being of this.beings) {
-			if (being.direction.y == beings[beings.indexOf(being)+1].direction.y) {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-	}
-
-
-	getAveragePosition() {
-		let x_arr = [];
-		let y_arr = [];
-
-		for (let being of this.beings) {
-			x_arr.push(being.position.x);
-			y_arr.push(being.position.y);
-		}
-
-		let position = new Vector(average(x_arr), average(y_arr));
-		return position;
-	}
-
-
-	getAverageAge() {
-		let ages = [];
-
-		for (let being of this.beings) {
-			ages.push(being.age);
-		}
-
-		return average(ages);
-	}
-
-
-	getGroupWidth() {
-		let xs = [];
-
-		for (let being of this.beings) {
-			xs.push(being.position.x);
-		}
-
-		return Math.max(...xs) - Math.min(...xs);
-	}
-
-
-	getGroupHeight() {
-		let ys = [];
-
-		for (let being of this.beings) {
-			ys.push(being.position.y);
-		}
-
-		return Math.max(...ys) - Math.min(...ys);
-	}
-
-
-	getTopLeft() {
-		let xs = [];
-		let ys = [];
-
-		for (let being of this.beings) {
-			xs.push(being.position.x);
-			ys.push(being.position.y);
-		}
-
-		return new Vector(Math.min(...xs), Math.min(...ys));
 	}
 }

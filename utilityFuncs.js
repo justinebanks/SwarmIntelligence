@@ -28,18 +28,6 @@ function _range(min, max) {
 }
 
 
-// Each Item in the Array Must Be of Type Number
-function average(arr) {
-	let sum = 0;
-
-	for (let i = 0; i < arr.length; i++) {
-		sum += arr[i];
-	}
-
-	return sum / arr.length;
-}
-
-
 class Vector {
 	constructor(x, y) {
 		this.x = x;

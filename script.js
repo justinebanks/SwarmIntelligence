@@ -1,3 +1,13 @@
+/*
+Inspired By Simulife Hub's YouTube Video
+on is "Screaming Insects" Project
+
+Link to video right here: "https://www.youtube.com/watch?v=Yu7sF9rcVJY"
+
+Full description of how swarm intelligence is simulated
+is at the timestamp 5:13 in the video
+
+*/
 
 
 // Set Up Canvas
@@ -9,9 +19,12 @@ const offscreen = canvas.transferControlToOffscreen();
 const c = offscreen.getContext("2d");
 
 
-
+// Spawn Targets (and Chooses their default colors)
 targets.push(new Target(60));
+targets.push(new Target(50));
 targets.push(new Target(240));
+targets.push(new Target(180));
+
 
 // Spawn Beings
 for (i in range(CELL_COUNT)) {
@@ -20,56 +33,14 @@ for (i in range(CELL_COUNT)) {
 }
 
 
-
-
 function animate() {
-	//worker.requestAnimationFrame(animate);
 	requestAnimationFrame(animate)
 	c.clearRect(0, 0, canvas.width, canvas.height)
-	frame++
 
-
+	// Updates targets
 	for (let target of targets) {
 		target.animate();
 	}
-
-
-	/*
-	// Draw All PinPoint Rects
-	for (let pinPoint of pinPoints) {
-		c.beginPath();
-		c.strokeStyle = "red";
-		c.strokeRect(pinPoint.x-25, pinPoint.y-25, 50, 50);
-		c.closePath();
-	}
-
-
-	
-	// Draw Glue Holding Groups Together
-	let groups = getGroups();
-
-	for (let group of groups) {
-		let position = group.getTopLeft();
-		let width = group.getGroupWidth();
-		let height = group.getGroupHeight();
-
-		c.beginPath();
-		c.fillStyle = "white";
-		c.fillRect(position.x, position.y, width, height);
-		c.closePath();
-	}
-	
-
-	// Animate Mouse Tracker Circle
-	c.beginPath();
-	c.strokeStyle = "yellow"
-	c.arc(mousePosition.x, mousePosition.y, MOUSE_RANGE, 0, Math.PI*2);
-	c.stroke();
-	c.closePath();
-	*/
-
-
-
 
 	// Update Beings
 	for (being of beings) {
